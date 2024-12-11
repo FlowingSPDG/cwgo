@@ -46,7 +46,7 @@ func NewListMotionsWithIDsRequest() io.Reader {
 
 type ListLayersRequest struct {
 	commonRequest
-	Parent  *string `json:"parent"`
+	Parent  *string `json:"parent,omitempty"`
 	Channel *string `json:"channel,omitempty"`
 }
 
