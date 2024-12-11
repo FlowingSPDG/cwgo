@@ -16,15 +16,13 @@ type CharacterWorks struct {
 	host string
 
 	// instance
-	client          *http.Client
-	requestsBuilder *RequestsBuilder
+	client *http.Client
 }
 
 func NewCharacterWorks(host string) *CharacterWorks {
 	return &CharacterWorks{
-		host:            fmt.Sprintf("http://%s", net.JoinHostPort(host, "5201")),
-		client:          http.DefaultClient,
-		requestsBuilder: &RequestsBuilder{},
+		host:   fmt.Sprintf("http://%s", net.JoinHostPort(host, "5201")),
+		client: http.DefaultClient,
 	}
 }
 
@@ -42,13 +40,9 @@ func doPost[TResp any](c *CharacterWorks, req io.Reader) (*TResp, error) {
 	return res, nil
 }
 
-func (c *CharacterWorks) RequestsBuilder() *RequestsBuilder {
-	return c.requestsBuilder
-}
-
-func (c *CharacterWorks) ListMotions() (*ListLayersResponse, error) {
+func (c *CharacterWorks) ListMotions() (*ListMotionsResponse, error) {
 	req := NewListMotionsRequest()
-	return doPost[ListLayersResponse](c, req)
+	return doPost[ListMotionsResponse](c, req)
 }
 
 func (c *CharacterWorks) ListMotionsWithIDs() (*ListMotionsWithIDsResponse, error) {
