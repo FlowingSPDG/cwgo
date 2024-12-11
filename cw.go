@@ -94,3 +94,8 @@ func (c *CharacterWorks) FinishAndRestartMotions(motions []string, motionIDs []s
 	req := NewFinishAndRestartMotionsRequest(motions, motionIDs, channel)
 	return doPost[FinishAndRestartMotionsResponse](c, req)
 }
+
+func (c *CharacterWorks) SetText(layer string, layerID []string, value string, channel *string) (*SetTextResponse, error) {
+	req := NewSetTextRequest(layer, layerID, value, channel)
+	return doPost[SetTextResponse](c, req)
+}

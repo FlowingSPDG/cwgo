@@ -213,7 +213,27 @@ func NewFinishAndRestartMotionsRequest(motions []string, motionIDs []string, cha
 	return toReader(b)
 }
 
-// set_text
+type SetTextRequest struct {
+	commonRequest
+	Layer   string   `json:"layer"`
+	LayerID []string `json:"layer_id"`
+	Value   string   `json:"value"`
+	Channel *string  `json:"channel,omitempty"`
+}
+
+func NewSetTextRequest(layer string, layerID []string, value string, channel *string) io.Reader {
+	b := &SetTextRequest{
+		commonRequest: commonRequest{
+			Action: "set_text",
+		},
+		Layer:   layer,
+		LayerID: layerID,
+		Value:   value,
+		Channel: channel,
+	}
+	return toReader(b)
+}
+
 // list_grid_names
 // list_grid_cells
 // activate_grid_cell

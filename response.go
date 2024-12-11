@@ -52,6 +52,13 @@ type commonWarnings struct {
 	} `json:"warnings"`
 }
 
+type commonErrors struct {
+	Errors []struct {
+		Code        string `json:"code"`
+		Description string `json:"description"`
+	} `json:"errors"`
+}
+
 type PlayMotionsResponse struct {
 	commonResult
 	commonWarnings
@@ -92,7 +99,11 @@ type FinishAndRestartMotionsResponse struct {
 	commonWarnings
 }
 
-// set_text
+type SetTextResponse struct {
+	commonResult
+	commonErrors
+}
+
 // list_grid_names
 // list_grid_cells
 // activate_grid_cell
