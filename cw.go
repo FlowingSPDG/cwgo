@@ -29,7 +29,7 @@ func NewCharacterWorks(host string) *CharacterWorks {
 func doPost[TResp any](c *CharacterWorks, req io.Reader) (*TResp, error) {
 	resp, err := c.client.Post(c.host, "application/json", req)
 	if err != nil {
-		return nil, xerrors.Errorf("failed to list motions with id: %w", err)
+		return nil, xerrors.Errorf("post request failed: %w", err)
 	}
 	defer resp.Body.Close()
 

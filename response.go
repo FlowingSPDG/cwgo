@@ -19,30 +19,15 @@ type ListMotionsWithIDsResponse struct {
 
 type ListLayersResponse struct {
 	commonResult
-	Layers []struct {
-		Name     string `json:"name"`
-		Path     string `json:"path"`
-		ID       string `json:"id"`
-		Type     string `json:"type"`
-		Children []struct {
-			Name     string `json:"name"`
-			Path     string `json:"path"`
-			ID       string `json:"id"`
-			Type     string `json:"type"`
-			Children []struct {
-				Name     string `json:"name"`
-				Path     string `json:"path"`
-				ID       string `json:"id"`
-				Type     string `json:"type"`
-				Children []struct {
-					Name string `json:"name"`
-					Path string `json:"path"`
-					ID   string `json:"id"`
-					Type string `json:"type"`
-				} `json:"children,omitempty"`
-			} `json:"children,omitempty"`
-		} `json:"children"`
-	} `json:"layers"`
+	Layers []Layer `json:"layers"`
+}
+
+type Layer struct {
+	Name     string  `json:"name"`
+	Path     string  `json:"path"`
+	ID       string  `json:"id"`
+	Type     string  `json:"type"`
+	Children []Layer `json:"children,omitempty"`
 }
 
 type commonWarnings struct {
