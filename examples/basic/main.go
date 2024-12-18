@@ -8,7 +8,7 @@ import (
 
 func main() {
 	// client
-	client := cw.NewCharacterWorks("localhost")
+	client := cw.NewCharacterWorks("localhost", 50)
 
 	// listMotions
 	listMotionsResponse, err := client.ListMotions()

@@ -22,12 +22,12 @@ type CharacterWorks struct {
 	client *http.Client
 }
 
-func NewCharacterWorks(host string) *CharacterWorks {
+func NewCharacterWorks(host string, limit float64) *CharacterWorks {
 	c := &CharacterWorks{
 		host:   fmt.Sprintf("http://%s", net.JoinHostPort(host, "5201")),
 		client: http.DefaultClient,
 	}
-	c.client.Transport = throttled.NewTransport(http.DefaultTransport, rate.NewLimiter(rate.Limit(30), 1))
+	c.client.Transport = throttled.NewTransport(http.DefaultTransport, rate.NewLimiter(rate.Limit(limit), 1))
 
 	return c
 }
