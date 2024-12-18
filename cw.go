@@ -9,6 +9,8 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/graze/go-throttled"
+	"golang.org/x/time/rate"
 	"golang.org/x/xerrors"
 )
 
@@ -21,10 +23,13 @@ type CharacterWorks struct {
 }
 
 func NewCharacterWorks(host string) *CharacterWorks {
-	return &CharacterWorks{
+	c := &CharacterWorks{
 		host:   fmt.Sprintf("http://%s", net.JoinHostPort(host, "5201")),
 		client: http.DefaultClient,
 	}
+	c.client.Transport = throttled.NewTransport(http.DefaultTransport, rate.NewLimiter(rate.Limit(30), 1))
+
+	return c
 }
 
 func DoPost[TResp any](c *CharacterWorks, req io.Reader) (*TResp, error) {
