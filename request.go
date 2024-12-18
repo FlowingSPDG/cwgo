@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
+
+	"golang.org/x/xerrors"
 )
 
 type commonRequest struct {
@@ -14,34 +16,43 @@ type ListMotionsRequest struct {
 	commonRequest
 }
 
-func toReader(v interface{}) io.Reader {
+func RequestToReader(v any) (io.Reader, error) {
 	buf := &bytes.Buffer{}
 	if err := json.NewEncoder(buf).Encode(v); err != nil {
-		panic("unexpected error encoding request")
+		return nil, xerrors.Errorf("unexpected error encoding request")
 	}
-	return buf
+	return buf, nil
 }
 
-func NewListMotionsRequest() io.Reader {
-	b := &ListMotionsRequest{
+func RequestsToReader(vs []any) (io.Reader, error) {
+	buf := &bytes.Buffer{}
+	encoder := json.NewEncoder(buf)
+	for _, v := range vs {
+		if err := encoder.Encode(v); err != nil {
+			return nil, xerrors.Errorf("unexpected error encoding request")
+		}
+	}
+	return buf, nil
+}
+
+func NewListMotionsRequest() *ListMotionsRequest {
+	return &ListMotionsRequest{
 		commonRequest: commonRequest{
 			Action: "list_motions",
 		},
 	}
-	return toReader(b)
 }
 
 type ListMotionsWithIDsRequest struct {
 	commonRequest
 }
 
-func NewListMotionsWithIDsRequest() io.Reader {
-	b := &ListMotionsWithIDsRequest{
+func NewListMotionsWithIDsRequest() *ListMotionsWithIDsRequest {
+	return &ListMotionsWithIDsRequest{
 		commonRequest: commonRequest{
 			Action: "list_motions_with_ids",
 		},
 	}
-	return toReader(b)
 }
 
 type ListLayersRequest struct {
@@ -50,15 +61,14 @@ type ListLayersRequest struct {
 	Channel *string `json:"channel,omitempty"`
 }
 
-func NewListLayersRequest(parent *string, channel *string) io.Reader {
-	b := &ListLayersRequest{
+func NewListLayersRequest(parent *string, channel *string) *ListLayersRequest {
+	return &ListLayersRequest{
 		commonRequest: commonRequest{
 			Action: "list_layers",
 		},
 		Parent:  parent,
 		Channel: channel,
 	}
-	return toReader(b)
 }
 
 type PlayMotionsRequest struct {
@@ -68,8 +78,8 @@ type PlayMotionsRequest struct {
 	Channel   *string  `json:"channel,omitempty"`
 }
 
-func NewPlayMotionsRequest(motions []string, motionIDs []string, channel *string) io.Reader {
-	b := &PlayMotionsRequest{
+func NewPlayMotionsRequest(motions []string, motionIDs []string, channel *string) *PlayMotionsRequest {
+	return &PlayMotionsRequest{
 		commonRequest: commonRequest{
 			Action: "play_motions",
 		},
@@ -77,7 +87,6 @@ func NewPlayMotionsRequest(motions []string, motionIDs []string, channel *string
 		MotionIDs: motionIDs,
 		Channel:   channel,
 	}
-	return toReader(b)
 }
 
 type StopMotionsRequest struct {
@@ -87,8 +96,8 @@ type StopMotionsRequest struct {
 	Channel   *string  `json:"channel,omitempty"`
 }
 
-func NewStopMotionsRequest(motions []string, motionIDs []string, channel *string) io.Reader {
-	b := &StopMotionsRequest{
+func NewStopMotionsRequest(motions []string, motionIDs []string, channel *string) *StopMotionsRequest {
+	return &StopMotionsRequest{
 		commonRequest: commonRequest{
 			Action: "stop_motions",
 		},
@@ -96,7 +105,6 @@ func NewStopMotionsRequest(motions []string, motionIDs []string, channel *string
 		MotionIDs: motionIDs,
 		Channel:   channel,
 	}
-	return toReader(b)
 }
 
 type EjectMotionsRequest struct {
@@ -106,8 +114,8 @@ type EjectMotionsRequest struct {
 	Channel   *string  `json:"channel,omitempty"`
 }
 
-func NewEjectMotionsRequest(motions []string, motionIDs []string, channel *string) io.Reader {
-	b := &EjectMotionsRequest{
+func NewEjectMotionsRequest(motions []string, motionIDs []string, channel *string) *EjectMotionsRequest {
+	return &EjectMotionsRequest{
 		commonRequest: commonRequest{
 			Action: "eject_motions",
 		},
@@ -115,7 +123,6 @@ func NewEjectMotionsRequest(motions []string, motionIDs []string, channel *strin
 		MotionIDs: motionIDs,
 		Channel:   channel,
 	}
-	return toReader(b)
 }
 
 type FinishMotionsRequest struct {
@@ -125,8 +132,8 @@ type FinishMotionsRequest struct {
 	Channel   *string  `json:"channel,omitempty"`
 }
 
-func NewFinishMotionsRequest(motions []string, motionIDs []string, channel *string) io.Reader {
-	b := &FinishMotionsRequest{
+func NewFinishMotionsRequest(motions []string, motionIDs []string, channel *string) *FinishMotionsRequest {
+	return &FinishMotionsRequest{
 		commonRequest: commonRequest{
 			Action: "finish_motions",
 		},
@@ -134,7 +141,6 @@ func NewFinishMotionsRequest(motions []string, motionIDs []string, channel *stri
 		MotionIDs: motionIDs,
 		Channel:   channel,
 	}
-	return toReader(b)
 }
 
 type PauseMotionsRequest struct {
@@ -144,8 +150,8 @@ type PauseMotionsRequest struct {
 	Channel   *string  `json:"channel,omitempty"`
 }
 
-func NewPauseMotionsRequest(motions []string, motionIDs []string, channel *string) io.Reader {
-	b := &PauseMotionsRequest{
+func NewPauseMotionsRequest(motions []string, motionIDs []string, channel *string) *PauseMotionsRequest {
+	return &PauseMotionsRequest{
 		commonRequest: commonRequest{
 			Action: "pause_motions",
 		},
@@ -153,7 +159,6 @@ func NewPauseMotionsRequest(motions []string, motionIDs []string, channel *strin
 		MotionIDs: motionIDs,
 		Channel:   channel,
 	}
-	return toReader(b)
 }
 
 type ResumeMotionsRequest struct {
@@ -163,8 +168,8 @@ type ResumeMotionsRequest struct {
 	Channel   *string  `json:"channel,omitempty"`
 }
 
-func NewResumeMotionsRequest(motions []string, motionIDs []string, channel *string) io.Reader {
-	b := &ResumeMotionsRequest{
+func NewResumeMotionsRequest(motions []string, motionIDs []string, channel *string) *ResumeMotionsRequest {
+	return &ResumeMotionsRequest{
 		commonRequest: commonRequest{
 			Action: "resume_motions",
 		},
@@ -172,7 +177,6 @@ func NewResumeMotionsRequest(motions []string, motionIDs []string, channel *stri
 		MotionIDs: motionIDs,
 		Channel:   channel,
 	}
-	return toReader(b)
 }
 
 type RestartMotionsRequest struct {
@@ -182,8 +186,8 @@ type RestartMotionsRequest struct {
 	Channel   *string  `json:"channel,omitempty"`
 }
 
-func NewRestartMotionsRequest(motions []string, motionIDs []string, channel *string) io.Reader {
-	b := &RestartMotionsRequest{
+func NewRestartMotionsRequest(motions []string, motionIDs []string, channel *string) *RestartMotionsRequest {
+	return &RestartMotionsRequest{
 		commonRequest: commonRequest{
 			Action: "restart_motions",
 		},
@@ -191,7 +195,6 @@ func NewRestartMotionsRequest(motions []string, motionIDs []string, channel *str
 		MotionIDs: motionIDs,
 		Channel:   channel,
 	}
-	return toReader(b)
 }
 
 type FinishAndRestartMotionsRequest struct {
@@ -201,8 +204,8 @@ type FinishAndRestartMotionsRequest struct {
 	Channel   *string  `json:"channel,omitempty"`
 }
 
-func NewFinishAndRestartMotionsRequest(motions []string, motionIDs []string, channel *string) io.Reader {
-	b := &FinishAndRestartMotionsRequest{
+func NewFinishAndRestartMotionsRequest(motions []string, motionIDs []string, channel *string) *FinishAndRestartMotionsRequest {
+	return &FinishAndRestartMotionsRequest{
 		commonRequest: commonRequest{
 			Action: "finish_and_restart_motions",
 		},
@@ -210,7 +213,6 @@ func NewFinishAndRestartMotionsRequest(motions []string, motionIDs []string, cha
 		MotionIDs: motionIDs,
 		Channel:   channel,
 	}
-	return toReader(b)
 }
 
 type SetTextRequest struct {
@@ -221,8 +223,8 @@ type SetTextRequest struct {
 	Channel *string  `json:"channel,omitempty"`
 }
 
-func NewSetTextRequest(layer string, layerID []string, value string, channel *string) io.Reader {
-	b := &SetTextRequest{
+func NewSetTextRequest(layer string, layerID []string, value string, channel *string) *SetTextRequest {
+	return &SetTextRequest{
 		commonRequest: commonRequest{
 			Action: "set_text",
 		},
@@ -231,7 +233,6 @@ func NewSetTextRequest(layer string, layerID []string, value string, channel *st
 		Value:   value,
 		Channel: channel,
 	}
-	return toReader(b)
 }
 
 // list_grid_names
