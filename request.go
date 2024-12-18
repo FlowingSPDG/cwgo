@@ -235,9 +235,48 @@ func NewSetTextRequest(layer string, layerID []string, value string, channel *st
 	}
 }
 
-// list_grid_names
-// list_grid_cells
-// activate_grid_cell
+type ListGridNamesRequest struct {
+	commonRequest
+}
+
+func NewListGridNamesRequest() *ListGridNamesRequest {
+	return &ListGridNamesRequest{
+		commonRequest: commonRequest{
+			Action: "list_grid_names",
+		},
+	}
+}
+
+type ListGridCellsRequest struct {
+	commonRequest
+	Grid string `json:"grid"`
+}
+
+func NewListGridCellsRequest(grid string) *ListGridCellsRequest {
+	return &ListGridCellsRequest{
+		commonRequest: commonRequest{
+			Action: "list_grid_cells",
+		},
+		Grid: grid,
+	}
+}
+
+type ActivateGridCellRequest struct {
+	commonRequest
+	Grid string `json:"grid"`
+	Cell [2]int `json:"cell"`
+}
+
+func NewActivateGridCellRequest(grid string, cell [2]int) *ActivateGridCellRequest {
+	return &ActivateGridCellRequest{
+		commonRequest: commonRequest{
+			Action: "activate_grid_cell",
+		},
+		Grid: grid,
+		Cell: cell,
+	}
+}
+
 // run_data_source_query
 // set_data_source_query_parameter
 // select_data_source_rows

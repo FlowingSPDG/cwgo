@@ -159,3 +159,30 @@ func (c *CharacterWorks) SetText(layer string, layerID []string, value string, c
 	}
 	return DoPost[SetTextResponse](c, r)
 }
+
+func (c *CharacterWorks) ListGridNames() (*ListGridNamesResponse, error) {
+	req := NewListGridNamesRequest()
+	r, err := RequestToReader(req)
+	if err != nil {
+		return nil, xerrors.Errorf("failed to create reader: %w", err)
+	}
+	return DoPost[ListGridNamesResponse](c, r)
+}
+
+func (c *CharacterWorks) ListGridCells(grid string) (*ListGridCellsResponse, error) {
+	req := NewListGridCellsRequest(grid)
+	r, err := RequestToReader(req)
+	if err != nil {
+		return nil, xerrors.Errorf("failed to create reader: %w", err)
+	}
+	return DoPost[ListGridCellsResponse](c, r)
+}
+
+func (c *CharacterWorks) ActivateGridCell(grid string, cell [2]int) (*ActivateGridCellResponse, error) {
+	req := NewActivateGridCellRequest(grid, cell)
+	r, err := RequestToReader(req)
+	if err != nil {
+		return nil, xerrors.Errorf("failed to create reader: %w", err)
+	}
+	return DoPost[ActivateGridCellResponse](c, r)
+}

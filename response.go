@@ -89,9 +89,33 @@ type SetTextResponse struct {
 	commonErrors
 }
 
-// list_grid_names
-// list_grid_cells
-// activate_grid_cell
+type ListGridNamesResponse struct {
+	commonResult
+	Grids []string `json:"grids"`
+}
+
+type ListGridCellsResponse struct {
+	commonResult
+	Grids []Grid `json:"grids"`
+}
+
+type Grid struct {
+	Size  []int      `json:"size"`
+	Cells []GridCell `json:"cells"`
+}
+
+type GridCell struct {
+	Position [2]int `json:"position"`
+	Text     string `json:"text"`
+	Key      string `json:"key"`
+	Color    [3]int `json:"color"`
+}
+
+type ActivateGridCellResponse struct {
+	commonResult
+	commonWarnings
+}
+
 // run_data_source_query
 // set_data_source_query_parameter
 // select_data_source_rows
