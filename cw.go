@@ -2,6 +2,7 @@
 package cw
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -33,9 +34,15 @@ func doPost[TResp any](c *CharacterWorks, req io.Reader) (*TResp, error) {
 	}
 	defer resp.Body.Close()
 
+	b := new(bytes.Buffer)
+	if _, err := io.Copy(b, resp.Body); err != nil {
+		return nil, xerrors.Errorf("failed to read response: %w", err)
+	}
+
 	res := new(TResp)
-	if err := json.NewDecoder(resp.Body).Decode(res); err != nil {
-		return nil, xerrors.Errorf("failed to decode response: %w", err)
+	bs := b.Bytes()
+	if err := json.Unmarshal(bs, res); err != nil {
+		return nil, xerrors.Errorf("failed to decode response: %w raw: %s", err, bs)
 	}
 	return res, nil
 }
