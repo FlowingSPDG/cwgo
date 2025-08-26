@@ -186,3 +186,58 @@ func (c *CharacterWorks) ActivateGridCell(grid string, cell [2]int) (*ActivateGr
 	}
 	return DoPost[ActivateGridCellResponse](c, r)
 }
+
+// Discovery helpers (read-only)
+
+// ListLayerNames returns a flattened list of layer names for the given channel.
+// If channel is nil, the default channel is used.
+func (c *CharacterWorks) ListLayerNames(channel *string) ([]string, error) {
+	resp, err := c.ListLayers(nil, channel)
+	if err != nil {
+		return nil, err
+	}
+	var names []string
+	var walk func(layers []Layer)
+	walk = func(layers []Layer) {
+		for _, l := range layers {
+			names = append(names, l.Name)
+			if len(l.Children) > 0 {
+				walk(l.Children)
+			}
+		}
+	}
+	walk(resp.Layers)
+	return names, nil
+}
+
+// ListFieldNames returns a map of field names to optional metadata for a given parent layer name.
+// This uses the ListLayers request with Parent set to the provided layer, and returns child layer names.
+// If channel is nil, the default channel is used.
+func (c *CharacterWorks) ListFieldNames(layer string, channel *string) (map[string]string, error) {
+	parent := layer
+	resp, err := c.ListLayers(&parent, channel)
+	if err != nil {
+		return nil, err
+	}
+	fields := make(map[string]string, len(resp.Layers))
+	for _, child := range resp.Layers {
+		fields[child.Name] = ""
+	}
+	return fields, nil
+}
+
+// ListMotionNamesAndIDs returns parallel slices of motion names and motion IDs.
+// The underlying API does not currently support channel scoping for listing; the channel parameter is accepted for future compatibility but ignored.
+func (c *CharacterWorks) ListMotionNamesAndIDs(channel *string) ([]string, []string, error) {
+	resp, err := c.ListMotionsWithIDs()
+	if err != nil {
+		return nil, nil, err
+	}
+	names := make([]string, 0, len(resp.Motions))
+	ids := make([]string, 0, len(resp.Motions))
+	for _, m := range resp.Motions {
+		names = append(names, m.Name)
+		ids = append(ids, m.ID)
+	}
+	return names, ids, nil
+}
