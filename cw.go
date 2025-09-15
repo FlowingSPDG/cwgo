@@ -59,6 +59,16 @@ func DoPost[TResp any](ctx context.Context, c *CharacterWorks, req io.Reader) (*
 	return res, nil
 }
 
+// DoBatchPost sends multiple requests as a JSON array and returns the response
+// Note: This function is kept for compatibility but should be used with specific request types
+func DoBatchPost[TResp any](ctx context.Context, c *CharacterWorks, requests []Request) (*TResp, error) {
+	r, err := RequestsToReader(requests)
+	if err != nil {
+		return nil, xerrors.Errorf("failed to create batch request reader: %w", err)
+	}
+	return DoPost[TResp](ctx, c, r)
+}
+
 func (c *CharacterWorks) ListMotions(ctx context.Context) (*ListMotionsResponse, error) {
 	req := NewListMotionsRequest()
 	r, err := RequestToReader(req)
@@ -247,4 +257,62 @@ func (c *CharacterWorks) ListMotionNamesAndIDs(ctx context.Context, channel *str
 		ids = append(ids, m.ID)
 	}
 	return names, ids, nil
+}
+
+// Data Source methods
+
+func (c *CharacterWorks) RunDataSourceQuery(ctx context.Context, dataSource string, query string, parameters map[string]string) (*RunDataSourceQueryResponse, error) {
+	req := NewRunDataSourceQueryRequest(dataSource, query, parameters)
+	r, err := RequestToReader(req)
+	if err != nil {
+		return nil, xerrors.Errorf("failed to create reader: %w", err)
+	}
+	return DoPost[RunDataSourceQueryResponse](ctx, c, r)
+}
+
+func (c *CharacterWorks) SetDataSourceQueryParameter(ctx context.Context, dataSource string, parameter string, value string) (*SetDataSourceQueryParameterResponse, error) {
+	req := NewSetDataSourceQueryParameterRequest(dataSource, parameter, value)
+	r, err := RequestToReader(req)
+	if err != nil {
+		return nil, xerrors.Errorf("failed to create reader: %w", err)
+	}
+	return DoPost[SetDataSourceQueryParameterResponse](ctx, c, r)
+}
+
+func (c *CharacterWorks) SelectDataSourceRows(ctx context.Context, dataSource string, rows []int) (*SelectDataSourceRowsResponse, error) {
+	req := NewSelectDataSourceRowsRequest(dataSource, rows)
+	r, err := RequestToReader(req)
+	if err != nil {
+		return nil, xerrors.Errorf("failed to create reader: %w", err)
+	}
+	return DoPost[SelectDataSourceRowsResponse](ctx, c, r)
+}
+
+// TriCaster Macro Control methods
+
+func (c *CharacterWorks) ExecuteTriCasterMacro(ctx context.Context, macroName string, parameters map[string]string) (*TriCasterMacroResponse, error) {
+	req := NewTriCasterMacroRequest(macroName, parameters)
+	r, err := RequestToReader(req)
+	if err != nil {
+		return nil, xerrors.Errorf("failed to create reader: %w", err)
+	}
+	return DoPost[TriCasterMacroResponse](ctx, c, r)
+}
+
+func (c *CharacterWorks) ExecuteNewTekCommand(ctx context.Context, command string, parameters map[string]string) (*NewTekCommandResponse, error) {
+	req := NewNewTekCommandRequest(command, parameters)
+	r, err := RequestToReader(req)
+	if err != nil {
+		return nil, xerrors.Errorf("failed to create reader: %w", err)
+	}
+	return DoPost[NewTekCommandResponse](ctx, c, r)
+}
+
+func (c *CharacterWorks) ExecuteCWSpecificCommand(ctx context.Context, command string, parameters map[string]string) (*CWSpecificCommandResponse, error) {
+	req := NewCWSpecificCommandRequest(command, parameters)
+	r, err := RequestToReader(req)
+	if err != nil {
+		return nil, xerrors.Errorf("failed to create reader: %w", err)
+	}
+	return DoPost[CWSpecificCommandResponse](ctx, c, r)
 }

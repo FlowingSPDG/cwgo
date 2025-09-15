@@ -86,7 +86,7 @@ type FinishAndRestartMotionsResponse struct {
 
 type SetTextResponse struct {
 	commonResult
-	commonErrors
+	commonWarnings
 }
 
 type ListGridNamesResponse struct {
@@ -116,8 +116,38 @@ type ActivateGridCellResponse struct {
 	commonWarnings
 }
 
-// run_data_source_query
-// set_data_source_query_parameter
-// select_data_source_rows
+type RunDataSourceQueryResponse struct {
+	commonResult
+	commonWarnings
+	Rows []map[string]string `json:"rows,omitempty"`
+}
 
-// tricaster macros??
+type SetDataSourceQueryParameterResponse struct {
+	commonResult
+	commonWarnings
+}
+
+type SelectDataSourceRowsResponse struct {
+	commonResult
+	commonWarnings
+}
+
+// TriCaster Macro Control
+
+type TriCasterMacroResponse struct {
+	commonResult
+	commonWarnings
+	Result map[string]interface{} `json:"result,omitempty"`
+}
+
+type NewTekCommandResponse struct {
+	commonResult
+	commonWarnings
+	Result map[string]interface{} `json:"result,omitempty"`
+}
+
+type CWSpecificCommandResponse struct {
+	commonResult
+	commonWarnings
+	Result map[string]interface{} `json:"result,omitempty"`
+}
