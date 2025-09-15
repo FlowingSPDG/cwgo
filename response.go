@@ -137,17 +137,17 @@ type SelectDataSourceRowsResponse struct {
 type TriCasterMacroResponse struct {
 	commonResult
 	commonWarnings
-	Result map[string]interface{} `json:"result,omitempty"`
+	Data map[string]interface{} `json:"data,omitempty"`
 }
 
 type NewTekCommandResponse struct {
 	commonResult
 	commonWarnings
-	Result map[string]interface{} `json:"result,omitempty"`
+	Data map[string]interface{} `json:"data,omitempty"`
 }
 
 type CWSpecificCommandResponse struct {
 	commonResult
 	commonWarnings
-	Result map[string]interface{} `json:"result,omitempty"`
+	Data map[string]interface{} `json:"data,omitempty"`
 }
