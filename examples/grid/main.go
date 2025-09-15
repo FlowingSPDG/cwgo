@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 
 	cw "github.com/FlowingSPDG/cwgo"
@@ -9,15 +10,16 @@ import (
 func main() {
 	// client
 	client := cw.NewCharacterWorks("192.168.10.121", 50)
+	ctx := context.Background()
 
-	listGridNamesResponse, err := client.ListGridNames()
+	listGridNamesResponse, err := client.ListGridNames(ctx)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Printf("listGridNamesResponse: %v\n", listGridNamesResponse)
 
 	for _, name := range listGridNamesResponse.Grids {
-		listGridsResponse, err := client.ListGridCells(name)
+		listGridsResponse, err := client.ListGridCells(ctx, name)
 		if err != nil {
 			panic(err)
 		}
@@ -26,7 +28,7 @@ func main() {
 		for _, grid := range listGridsResponse.Grids {
 			fmt.Printf("grid: %v\n", grid)
 			for _, cell := range grid.Cells {
-				activateGridCellResponse, err := client.ActivateGridCell(name, cell.Position)
+				activateGridCellResponse, err := client.ActivateGridCell(ctx, name, cell.Position)
 				if err != nil {
 					panic(err)
 				}
