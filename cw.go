@@ -3,6 +3,7 @@ package cw
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -32,8 +33,14 @@ func NewCharacterWorks(host string, limit float64) *CharacterWorks {
 	return c
 }
 
-func DoPost[TResp any](c *CharacterWorks, req io.Reader) (*TResp, error) {
-	resp, err := c.client.Post(c.host, "application/json", req)
+func DoPost[TResp any](ctx context.Context, c *CharacterWorks, req io.Reader) (*TResp, error) {
+	httpReq, err := http.NewRequestWithContext(ctx, "POST", c.host, req)
+	if err != nil {
+		return nil, xerrors.Errorf("failed to create request: %w", err)
+	}
+	httpReq.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.client.Do(httpReq)
 	if err != nil {
 		return nil, xerrors.Errorf("post request failed: %w", err)
 	}
@@ -52,147 +59,157 @@ func DoPost[TResp any](c *CharacterWorks, req io.Reader) (*TResp, error) {
 	return res, nil
 }
 
-func (c *CharacterWorks) ListMotions() (*ListMotionsResponse, error) {
+// DoBatchPost sends multiple requests as a JSON array and returns the response
+// Note: This function is kept for compatibility but should be used with specific request types
+func DoBatchPost[TResp any](ctx context.Context, c *CharacterWorks, requests []Request) (*TResp, error) {
+	r, err := RequestsToReader(requests)
+	if err != nil {
+		return nil, xerrors.Errorf("failed to create batch request reader: %w", err)
+	}
+	return DoPost[TResp](ctx, c, r)
+}
+
+func (c *CharacterWorks) ListMotions(ctx context.Context) (*ListMotionsResponse, error) {
 	req := NewListMotionsRequest()
 	r, err := RequestToReader(req)
 	if err != nil {
 		return nil, xerrors.Errorf("failed to create reader: %w", err)
 	}
-	return DoPost[ListMotionsResponse](c, r)
+	return DoPost[ListMotionsResponse](ctx, c, r)
 }
 
-func (c *CharacterWorks) ListMotionsWithIDs() (*ListMotionsWithIDsResponse, error) {
+func (c *CharacterWorks) ListMotionsWithIDs(ctx context.Context) (*ListMotionsWithIDsResponse, error) {
 	req := NewListMotionsWithIDsRequest()
 	r, err := RequestToReader(req)
 	if err != nil {
 		return nil, xerrors.Errorf("failed to create reader: %w", err)
 	}
-	return DoPost[ListMotionsWithIDsResponse](c, r)
+	return DoPost[ListMotionsWithIDsResponse](ctx, c, r)
 }
 
-func (c *CharacterWorks) ListLayers(parent *string, channel *string) (*ListLayersResponse, error) {
+func (c *CharacterWorks) ListLayers(ctx context.Context, parent *string, channel *string) (*ListLayersResponse, error) {
 	req := NewListLayersRequest(parent, channel)
 	r, err := RequestToReader(req)
 	if err != nil {
 		return nil, xerrors.Errorf("failed to create reader: %w", err)
 	}
-	return DoPost[ListLayersResponse](c, r)
+	return DoPost[ListLayersResponse](ctx, c, r)
 }
 
-func (c *CharacterWorks) PlayMotions(motions []string, motionIDs []string, channel *string) (*PlayMotionsResponse, error) {
+func (c *CharacterWorks) PlayMotions(ctx context.Context, motions []string, motionIDs []string, channel *string) (*PlayMotionsResponse, error) {
 	req := NewPlayMotionsRequest(motions, motionIDs, channel)
 	r, err := RequestToReader(req)
 	if err != nil {
 		return nil, xerrors.Errorf("failed to create reader: %w", err)
 	}
-	return DoPost[PlayMotionsResponse](c, r)
+	return DoPost[PlayMotionsResponse](ctx, c, r)
 }
 
-func (c *CharacterWorks) StopMotions(motions []string, motionIDs []string, channel *string) (*StopMotionsResponse, error) {
+func (c *CharacterWorks) StopMotions(ctx context.Context, motions []string, motionIDs []string, channel *string) (*StopMotionsResponse, error) {
 	req := NewStopMotionsRequest(motions, motionIDs, channel)
 	r, err := RequestToReader(req)
 	if err != nil {
 		return nil, xerrors.Errorf("failed to create reader: %w", err)
 	}
-	return DoPost[StopMotionsResponse](c, r)
+	return DoPost[StopMotionsResponse](ctx, c, r)
 }
 
-func (c *CharacterWorks) EjectMotions(motions []string, motionIDs []string, channel *string) (*EjectMotionsResponse, error) {
+func (c *CharacterWorks) EjectMotions(ctx context.Context, motions []string, motionIDs []string, channel *string) (*EjectMotionsResponse, error) {
 	req := NewEjectMotionsRequest(motions, motionIDs, channel)
 	r, err := RequestToReader(req)
 	if err != nil {
 		return nil, xerrors.Errorf("failed to create reader: %w", err)
 	}
-	return DoPost[EjectMotionsResponse](c, r)
+	return DoPost[EjectMotionsResponse](ctx, c, r)
 }
 
-func (c *CharacterWorks) FinishMotions(motions []string, motionIDs []string, channel *string) (*FinishMotionsResponse, error) {
+func (c *CharacterWorks) FinishMotions(ctx context.Context, motions []string, motionIDs []string, channel *string) (*FinishMotionsResponse, error) {
 	req := NewFinishMotionsRequest(motions, motionIDs, channel)
 	r, err := RequestToReader(req)
 	if err != nil {
 		return nil, xerrors.Errorf("failed to create reader: %w", err)
 	}
-	return DoPost[FinishMotionsResponse](c, r)
+	return DoPost[FinishMotionsResponse](ctx, c, r)
 }
 
-func (c *CharacterWorks) PauseMotions(motions []string, motionIDs []string, channel *string) (*PauseMotionsResponse, error) {
+func (c *CharacterWorks) PauseMotions(ctx context.Context, motions []string, motionIDs []string, channel *string) (*PauseMotionsResponse, error) {
 	req := NewPauseMotionsRequest(motions, motionIDs, channel)
 	r, err := RequestToReader(req)
 	if err != nil {
 		return nil, xerrors.Errorf("failed to create reader: %w", err)
 	}
-	return DoPost[PauseMotionsResponse](c, r)
+	return DoPost[PauseMotionsResponse](ctx, c, r)
 }
 
-func (c *CharacterWorks) ResumeMotions(motions []string, motionIDs []string, channel *string) (*ResumeMotionsResponse, error) {
+func (c *CharacterWorks) ResumeMotions(ctx context.Context, motions []string, motionIDs []string, channel *string) (*ResumeMotionsResponse, error) {
 	req := NewResumeMotionsRequest(motions, motionIDs, channel)
 	r, err := RequestToReader(req)
 	if err != nil {
 		return nil, xerrors.Errorf("failed to create reader: %w", err)
 	}
-	return DoPost[ResumeMotionsResponse](c, r)
+	return DoPost[ResumeMotionsResponse](ctx, c, r)
 }
 
-func (c *CharacterWorks) RestartMotions(motions []string, motionIDs []string, channel *string) (*RestartMotionsResponse, error) {
+func (c *CharacterWorks) RestartMotions(ctx context.Context, motions []string, motionIDs []string, channel *string) (*RestartMotionsResponse, error) {
 	req := NewRestartMotionsRequest(motions, motionIDs, channel)
 	r, err := RequestToReader(req)
 	if err != nil {
 		return nil, xerrors.Errorf("failed to create reader: %w", err)
 	}
-	return DoPost[RestartMotionsResponse](c, r)
+	return DoPost[RestartMotionsResponse](ctx, c, r)
 }
 
-func (c *CharacterWorks) FinishAndRestartMotions(motions []string, motionIDs []string, channel *string) (*FinishAndRestartMotionsResponse, error) {
+func (c *CharacterWorks) FinishAndRestartMotions(ctx context.Context, motions []string, motionIDs []string, channel *string) (*FinishAndRestartMotionsResponse, error) {
 	req := NewFinishAndRestartMotionsRequest(motions, motionIDs, channel)
 	r, err := RequestToReader(req)
 	if err != nil {
 		return nil, xerrors.Errorf("failed to create reader: %w", err)
 	}
-	return DoPost[FinishAndRestartMotionsResponse](c, r)
+	return DoPost[FinishAndRestartMotionsResponse](ctx, c, r)
 }
 
-func (c *CharacterWorks) SetText(layer string, layerID []string, value string, channel *string) (*SetTextResponse, error) {
+func (c *CharacterWorks) SetText(ctx context.Context, layer string, layerID []string, value string, channel *string) (*SetTextResponse, error) {
 	req := NewSetTextRequest(layer, layerID, value, channel)
 	r, err := RequestToReader(req)
 	if err != nil {
 		return nil, xerrors.Errorf("failed to create reader: %w", err)
 	}
-	return DoPost[SetTextResponse](c, r)
+	return DoPost[SetTextResponse](ctx, c, r)
 }
 
-func (c *CharacterWorks) ListGridNames() (*ListGridNamesResponse, error) {
+func (c *CharacterWorks) ListGridNames(ctx context.Context) (*ListGridNamesResponse, error) {
 	req := NewListGridNamesRequest()
 	r, err := RequestToReader(req)
 	if err != nil {
 		return nil, xerrors.Errorf("failed to create reader: %w", err)
 	}
-	return DoPost[ListGridNamesResponse](c, r)
+	return DoPost[ListGridNamesResponse](ctx, c, r)
 }
 
-func (c *CharacterWorks) ListGridCells(grid string) (*ListGridCellsResponse, error) {
+func (c *CharacterWorks) ListGridCells(ctx context.Context, grid string) (*ListGridCellsResponse, error) {
 	req := NewListGridCellsRequest(grid)
 	r, err := RequestToReader(req)
 	if err != nil {
 		return nil, xerrors.Errorf("failed to create reader: %w", err)
 	}
-	return DoPost[ListGridCellsResponse](c, r)
+	return DoPost[ListGridCellsResponse](ctx, c, r)
 }
 
-func (c *CharacterWorks) ActivateGridCell(grid string, cell [2]int) (*ActivateGridCellResponse, error) {
+func (c *CharacterWorks) ActivateGridCell(ctx context.Context, grid string, cell [2]int) (*ActivateGridCellResponse, error) {
 	req := NewActivateGridCellRequest(grid, cell)
 	r, err := RequestToReader(req)
 	if err != nil {
 		return nil, xerrors.Errorf("failed to create reader: %w", err)
 	}
-	return DoPost[ActivateGridCellResponse](c, r)
+	return DoPost[ActivateGridCellResponse](ctx, c, r)
 }
 
 // Discovery helpers (read-only)
 
 // ListLayerNames returns a flattened list of layer names for the given channel.
 // If channel is nil, the default channel is used.
-func (c *CharacterWorks) ListLayerNames(channel *string) ([]string, error) {
-	resp, err := c.ListLayers(nil, channel)
+func (c *CharacterWorks) ListLayerNames(ctx context.Context, channel *string) ([]string, error) {
+	resp, err := c.ListLayers(ctx, nil, channel)
 	if err != nil {
 		return nil, err
 	}
@@ -213,9 +230,9 @@ func (c *CharacterWorks) ListLayerNames(channel *string) ([]string, error) {
 // ListFieldNames returns a map of field names to optional metadata for a given parent layer name.
 // This uses the ListLayers request with Parent set to the provided layer, and returns child layer names.
 // If channel is nil, the default channel is used.
-func (c *CharacterWorks) ListFieldNames(layer string, channel *string) (map[string]string, error) {
+func (c *CharacterWorks) ListFieldNames(ctx context.Context, layer string, channel *string) (map[string]string, error) {
 	parent := layer
-	resp, err := c.ListLayers(&parent, channel)
+	resp, err := c.ListLayers(ctx, &parent, channel)
 	if err != nil {
 		return nil, err
 	}
@@ -228,8 +245,8 @@ func (c *CharacterWorks) ListFieldNames(layer string, channel *string) (map[stri
 
 // ListMotionNamesAndIDs returns parallel slices of motion names and motion IDs.
 // The underlying API does not currently support channel scoping for listing; the channel parameter is accepted for future compatibility but ignored.
-func (c *CharacterWorks) ListMotionNamesAndIDs(channel *string) ([]string, []string, error) {
-	resp, err := c.ListMotionsWithIDs()
+func (c *CharacterWorks) ListMotionNamesAndIDs(ctx context.Context, channel *string) ([]string, []string, error) {
+	resp, err := c.ListMotionsWithIDs(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -240,4 +257,62 @@ func (c *CharacterWorks) ListMotionNamesAndIDs(channel *string) ([]string, []str
 		ids = append(ids, m.ID)
 	}
 	return names, ids, nil
+}
+
+// Data Source methods
+
+func (c *CharacterWorks) RunDataSourceQuery(ctx context.Context, dataSource string, query string, parameters map[string]string) (*RunDataSourceQueryResponse, error) {
+	req := NewRunDataSourceQueryRequest(dataSource, query, parameters)
+	r, err := RequestToReader(req)
+	if err != nil {
+		return nil, xerrors.Errorf("failed to create reader: %w", err)
+	}
+	return DoPost[RunDataSourceQueryResponse](ctx, c, r)
+}
+
+func (c *CharacterWorks) SetDataSourceQueryParameter(ctx context.Context, dataSource string, parameter string, value string) (*SetDataSourceQueryParameterResponse, error) {
+	req := NewSetDataSourceQueryParameterRequest(dataSource, parameter, value)
+	r, err := RequestToReader(req)
+	if err != nil {
+		return nil, xerrors.Errorf("failed to create reader: %w", err)
+	}
+	return DoPost[SetDataSourceQueryParameterResponse](ctx, c, r)
+}
+
+func (c *CharacterWorks) SelectDataSourceRows(ctx context.Context, dataSource string, rows []int) (*SelectDataSourceRowsResponse, error) {
+	req := NewSelectDataSourceRowsRequest(dataSource, rows)
+	r, err := RequestToReader(req)
+	if err != nil {
+		return nil, xerrors.Errorf("failed to create reader: %w", err)
+	}
+	return DoPost[SelectDataSourceRowsResponse](ctx, c, r)
+}
+
+// TriCaster Macro Control methods
+
+func (c *CharacterWorks) ExecuteTriCasterMacro(ctx context.Context, macroName string, parameters map[string]string) (*TriCasterMacroResponse, error) {
+	req := NewTriCasterMacroRequest(macroName, parameters)
+	r, err := RequestToReader(req)
+	if err != nil {
+		return nil, xerrors.Errorf("failed to create reader: %w", err)
+	}
+	return DoPost[TriCasterMacroResponse](ctx, c, r)
+}
+
+func (c *CharacterWorks) ExecuteNewTekCommand(ctx context.Context, command string, parameters map[string]string) (*NewTekCommandResponse, error) {
+	req := NewNewTekCommandRequest(command, parameters)
+	r, err := RequestToReader(req)
+	if err != nil {
+		return nil, xerrors.Errorf("failed to create reader: %w", err)
+	}
+	return DoPost[NewTekCommandResponse](ctx, c, r)
+}
+
+func (c *CharacterWorks) ExecuteCWSpecificCommand(ctx context.Context, command string, parameters map[string]string) (*CWSpecificCommandResponse, error) {
+	req := NewCWSpecificCommandRequest(command, parameters)
+	r, err := RequestToReader(req)
+	if err != nil {
+		return nil, xerrors.Errorf("failed to create reader: %w", err)
+	}
+	return DoPost[CWSpecificCommandResponse](ctx, c, r)
 }

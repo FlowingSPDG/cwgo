@@ -12,11 +12,16 @@ type commonRequest struct {
 	Action string `json:"action"`
 }
 
+// Request interface for all request types
+type Request interface {
+	// This interface allows us to group all request types without using any/interface{}
+}
+
 type ListMotionsRequest struct {
 	commonRequest
 }
 
-func RequestToReader(v any) (io.Reader, error) {
+func RequestToReader(v Request) (io.Reader, error) {
 	buf := &bytes.Buffer{}
 	if err := json.NewEncoder(buf).Encode(v); err != nil {
 		return nil, xerrors.Errorf("unexpected error encoding request")
@@ -24,13 +29,10 @@ func RequestToReader(v any) (io.Reader, error) {
 	return buf, nil
 }
 
-func RequestsToReader(vs []any) (io.Reader, error) {
+func RequestsToReader(vs []Request) (io.Reader, error) {
 	buf := &bytes.Buffer{}
-	encoder := json.NewEncoder(buf)
-	for _, v := range vs {
-		if err := encoder.Encode(v); err != nil {
-			return nil, xerrors.Errorf("unexpected error encoding request")
-		}
+	if err := json.NewEncoder(buf).Encode(vs); err != nil {
+		return nil, xerrors.Errorf("unexpected error encoding request array: %w", err)
 	}
 	return buf, nil
 }
@@ -277,8 +279,108 @@ func NewActivateGridCellRequest(grid string, cell [2]int) *ActivateGridCellReque
 	}
 }
 
-// run_data_source_query
-// set_data_source_query_parameter
-// select_data_source_rows
+type RunDataSourceQueryRequest struct {
+	commonRequest
+	DataSource string            `json:"data_source"`
+	Query      string            `json:"query"`
+	Parameters map[string]string `json:"parameters,omitempty"`
+}
 
-// tricaster macros??
+func NewRunDataSourceQueryRequest(dataSource string, query string, parameters map[string]string) *RunDataSourceQueryRequest {
+	return &RunDataSourceQueryRequest{
+		commonRequest: commonRequest{
+			Action: "run_data_source_query",
+		},
+		DataSource: dataSource,
+		Query:      query,
+		Parameters: parameters,
+	}
+}
+
+type SetDataSourceQueryParameterRequest struct {
+	commonRequest
+	DataSource string `json:"data_source"`
+	Parameter  string `json:"parameter"`
+	Value      string `json:"value"`
+}
+
+func NewSetDataSourceQueryParameterRequest(dataSource string, parameter string, value string) *SetDataSourceQueryParameterRequest {
+	return &SetDataSourceQueryParameterRequest{
+		commonRequest: commonRequest{
+			Action: "set_data_source_query_parameter",
+		},
+		DataSource: dataSource,
+		Parameter:  parameter,
+		Value:      value,
+	}
+}
+
+type SelectDataSourceRowsRequest struct {
+	commonRequest
+	DataSource string `json:"data_source"`
+	Rows       []int  `json:"rows"`
+}
+
+func NewSelectDataSourceRowsRequest(dataSource string, rows []int) *SelectDataSourceRowsRequest {
+	return &SelectDataSourceRowsRequest{
+		commonRequest: commonRequest{
+			Action: "select_data_source_rows",
+		},
+		DataSource: dataSource,
+		Rows:       rows,
+	}
+}
+
+// TriCaster Macro Control
+
+type TriCasterMacroRequest struct {
+	commonRequest
+	MacroName  string            `json:"macro_name"`
+	Parameters map[string]string `json:"parameters,omitempty"`
+}
+
+func NewTriCasterMacroRequest(macroName string, parameters map[string]string) *TriCasterMacroRequest {
+	return &TriCasterMacroRequest{
+		commonRequest: commonRequest{
+			Action: "tricaster_macro",
+		},
+		MacroName:  macroName,
+		Parameters: parameters,
+	}
+}
+
+// NewTek Standard Commands
+
+type NewTekCommandRequest struct {
+	commonRequest
+	Command    string            `json:"command"`
+	Parameters map[string]string `json:"parameters,omitempty"`
+}
+
+func NewNewTekCommandRequest(command string, parameters map[string]string) *NewTekCommandRequest {
+	return &NewTekCommandRequest{
+		commonRequest: commonRequest{
+			Action: "newtek_command",
+		},
+		Command:    command,
+		Parameters: parameters,
+	}
+}
+
+// CW Specific Commands
+
+type CWSpecificCommandRequest struct {
+	commonRequest
+	Command    string            `json:"command"`
+	Parameters map[string]string `json:"parameters,omitempty"`
+}
+
+func NewCWSpecificCommandRequest(command string, parameters map[string]string) *CWSpecificCommandRequest {
+	return &CWSpecificCommandRequest{
+		commonRequest: commonRequest{
+			Action: "cw_specific_command",
+		},
+		Command:    command,
+		Parameters: parameters,
+	}
+}
